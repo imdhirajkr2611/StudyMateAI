@@ -1,9 +1,15 @@
 package com.studymate.ai.database;
 
+import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
+import android.database.SQLException;
+import android.database.sqlite.SQLiteConstraintException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
+
+import com.studymate.ai.models.User;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String TAG = "DatabaseHelper";
@@ -53,5 +59,69 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.execSQL("DROP TABLE IF EXISTS subjects;");
         db.execSQL("DROP TABLE IF EXISTS users;");
         onCreate(db);
+    }
+
+    // ---------------------
+    // Convenience CRUD helpers for Module 1 (users)
+    // ---------------------
+
+    public long addUser(String firstName, String lastName, String email, String passwordHash, String grade, int isAdmin) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues cv = new ContentValues();
+        cv.put("first_name", firstName);
+        cv.put("last_name", lastName);
+        cv.put("email", email);
+        cv.put("password_hash", passwordHash);
+        cv.put("grade", grade);
+        cv.put("is_admin", isAdmin);
+        try {
+            return db.insertOrThrow("users", null, cv);
+        } catch (SQLiteConstraintException ex) {
+            // unique constraint failed (duplicate email)
+            Log.w(TAG, "addUser: duplicate email: " + email);
+            return -2;
+        } catch (SQLException ex) {
+            Log.e(TAG, "addUser: failed", ex);
+            return -1;
+        }
+    }
+
+    public User getUserByEmail(String email) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor c = null;
+        try {
+            c = db.rawQuery("SELECT id, first_name, last_name, email, password_hash, grade, is_admin, created_at FROM users WHERE email = ? LIMIT 1", new String[]{email});
+            if (c != null && c.moveToFirst()) {
+                User u = new User();
+                u.setId(c.getLong(c.getColumnIndexOrThrow("id")));
+                u.setFirstName(c.getString(c.getColumnIndexOrThrow("first_name")));
+                u.setLastName(c.getString(c.getColumnIndexOrThrow("last_name")));
+                u.setEmail(c.getString(c.getColumnIndexOrThrow("email")));
+                u.setPasswordHash(c.getString(c.getColumnIndexOrThrow("password_hash")));
+                u.setGrade(c.getString(c.getColumnIndexOrThrow("grade")));
+                u.setIsAdmin(c.getInt(c.getColumnIndexOrThrow("is_admin")));
+                u.setCreatedAt(c.getString(c.getColumnIndexOrThrow("created_at")));
+                return u;
+            }
+        } catch (Exception ex) {
+            Log.e(TAG, "getUserByEmail", ex);
+        } finally {
+            if (c != null) c.close();
+        }
+        return null;
+    }
+
+    public boolean ensureAdminUser() {
+        // Ensure a user with email 'admin' exists and is marked as admin. Password will be 'admin' hashed.
+        try {
+            User u = getUserByEmail("admin");
+            if (u != null) return true;
+            String defaultHash = com.studymate.ai.utils.PasswordUtils.sha256("admin");
+            long id = addUser("Admin", "", "admin", defaultHash, "", 1);
+            return id > 0;
+        } catch (Exception ex) {
+            Log.e(TAG, "ensureAdminUser", ex);
+            return false;
+        }
     }
 }
