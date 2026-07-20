@@ -63,6 +63,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     // ---------------------
     // Convenience CRUD helpers for Module 1 (users)
+    // and Module 2 (dashboard counts)
     // ---------------------
 
     public long addUser(String firstName, String lastName, String email, String passwordHash, String grade, int isAdmin) {
@@ -111,6 +112,31 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return null;
     }
 
+    public User getUserById(long id) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor c = null;
+        try {
+            c = db.rawQuery("SELECT id, first_name, last_name, email, password_hash, grade, is_admin, created_at FROM users WHERE id = ? LIMIT 1", new String[]{String.valueOf(id)});
+            if (c != null && c.moveToFirst()) {
+                User u = new User();
+                u.setId(c.getLong(c.getColumnIndexOrThrow("id")));
+                u.setFirstName(c.getString(c.getColumnIndexOrThrow("first_name")));
+                u.setLastName(c.getString(c.getColumnIndexOrThrow("last_name")));
+                u.setEmail(c.getString(c.getColumnIndexOrThrow("email")));
+                u.setPasswordHash(c.getString(c.getColumnIndexOrThrow("password_hash")));
+                u.setGrade(c.getString(c.getColumnIndexOrThrow("grade")));
+                u.setIsAdmin(c.getInt(c.getColumnIndexOrThrow("is_admin")));
+                u.setCreatedAt(c.getString(c.getColumnIndexOrThrow("created_at")));
+                return u;
+            }
+        } catch (Exception ex) {
+            Log.e(TAG, "getUserById", ex);
+        } finally {
+            if (c != null) c.close();
+        }
+        return null;
+    }
+
     public boolean ensureAdminUser() {
         // Ensure a user with email 'admin' exists and is marked as admin. Password will be 'admin' hashed.
         try {
@@ -121,6 +147,124 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             return id > 0;
         } catch (Exception ex) {
             Log.e(TAG, "ensureAdminUser", ex);
+            return false;
+        }
+    }
+
+    // Dashboard helpers
+    public int getSubjectCountForUser(long userId) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor c = db.rawQuery("SELECT COUNT(*) FROM subjects WHERE user_id = ?", new String[]{String.valueOf(userId)});
+        int count = 0;
+        if (c != null) {
+            if (c.moveToFirst()) count = c.getInt(0);
+            c.close();
+        }
+        return count;
+    }
+
+    public int getNoteCountForUser(long userId) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor c = db.rawQuery("SELECT COUNT(*) FROM notes WHERE user_id = ?", new String[]{String.valueOf(userId)});
+        int count = 0;
+        if (c != null) {
+            if (c.moveToFirst()) count = c.getInt(0);
+            c.close();
+        }
+        return count;
+    }
+
+    public double getAverageQuizScoreForUser(long userId) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor c = db.rawQuery("SELECT AVG(CAST(score AS FLOAT) / total) * 100.0 FROM quiz_attempts WHERE user_id = ? AND total > 0", new String[]{String.valueOf(userId)});
+        double val = 0.0;
+        if (c != null) {
+            if (c.moveToFirst()) val = c.getDouble(0);
+            c.close();
+        }
+        if (Double.isNaN(val)) return 0.0;
+        return val;
+    }
+
+    public int getCurrentStreakForUser(long userId) {
+        // Simple streak calculation: count consecutive days with study_sessions up to today.
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor c = db.rawQuery("SELECT COUNT(DISTINCT DATE(session_date)) FROM study_sessions WHERE user_id = ? AND DATE(session_date) >= DATE('now', '-7 days')", new String[]{String.valueOf(userId)});
+        int streak = 0;
+        if (c != null) {
+            if (c.moveToFirst()) streak = c.getInt(0);
+            c.close();
+        }
+        return streak;
+    }
+
+    public int getAverageSubjectProgressForUser(long userId) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor c = db.rawQuery("SELECT AVG(progress) FROM subjects WHERE user_id = ?", new String[]{String.valueOf(userId)});
+        int val = 0;
+        if (c != null) {
+            if (c.moveToFirst()) {
+                double d = c.getDouble(0);
+                val = (int) Math.round(d);
+            }
+            c.close();
+        }
+        return val;
+    }
+
+    // Admin/global stats
+    public int getTotalUsers() {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor c = db.rawQuery("SELECT COUNT(*) FROM users", null);
+        int count = 0;
+        if (c != null) {
+            if (c.moveToFirst()) count = c.getInt(0);
+            c.close();
+        }
+        return count;
+    }
+
+    public int getTotalNotes() {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor c = db.rawQuery("SELECT COUNT(*) FROM notes", null);
+        int count = 0;
+        if (c != null) {
+            if (c.moveToFirst()) count = c.getInt(0);
+            c.close();
+        }
+        return count;
+    }
+
+    public int getTotalQuizAttempts() {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor c = db.rawQuery("SELECT COUNT(*) FROM quiz_attempts", null);
+        int count = 0;
+        if (c != null) {
+            if (c.moveToFirst()) count = c.getInt(0);
+            c.close();
+        }
+        return count;
+    }
+
+    public int getTotalQuestions() {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor c = db.rawQuery("SELECT COUNT(*) FROM quiz_questions", null);
+        int count = 0;
+        if (c != null) {
+            if (c.moveToFirst()) count = c.getInt(0);
+            c.close();
+        }
+        return count;
+    }
+
+    public boolean resetAllData() {
+        // Optional helper to drop all non-user schema data (dangerous) — implement as simple drop & recreate
+        try {
+            SQLiteDatabase db = this.getWritableDatabase();
+            onUpgrade(db, DB_VERSION, DB_VERSION + 1);
+            return true;
+        } catch (Exception ex) {
+            Log.e(TAG, "resetAllData", ex);
             return false;
         }
     }

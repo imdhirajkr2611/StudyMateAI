@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">StudyMate AI</string>
+    <string name="dashboard_title">Dashboard</string>
+    <string name="manage_users">Manage Users</string>
+    <string name="add_question">Add Quiz Question</string>
+    <string name="view_questions">View & Edit Questions</string>
+    <string name="reset_data">Reset All Data</string>
 </resources>

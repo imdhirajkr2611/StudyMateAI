@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="12dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Admin Dashboard"
+            android:textSize="22sp"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="12dp"
+            android:weightSum="4">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:padding="8dp">
+                <TextView android:text="Users" />
+                <TextView
+                    android:id="@+id/tvTotalUsers"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:text="0" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:padding="8dp">
+                <TextView android:text="Notes" />
+                <TextView
+                    android:id="@+id/tvTotalNotes"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:text="0" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:padding="8dp">
+                <TextView android:text="Quizzes" />
+                <TextView
+                    android:id="@+id/tvTotalQuizzes"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:text="0" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:padding="8dp">
+                <TextView android:text="Questions" />
+                <TextView
+                    android:id="@+id/tvTotalQuestions"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:text="0" />
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="16dp">
+
+            <Button
+                android:id="@+id/btnManageUsers"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Manage Users" />
+
+            <Button
+                android:id="@+id/btnAddQuestion"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Add Quiz Question"
+                android:layout_marginTop="8dp" />
+
+            <Button
+                android:id="@+id/btnViewQuestions"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="View & Edit Questions"
+                android:layout_marginTop="8dp" />
+
+            <Button
+                android:id="@+id/btnResetData"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Reset All Data"
+                android:layout_marginTop="8dp" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+</ScrollView>
